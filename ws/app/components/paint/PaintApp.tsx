@@ -82,7 +82,7 @@ export function PaintApp() {
 
 
   return (
-    <div className="flex flex-col h-screen bg-[#f0f0f0] font-['Segoe_UI',sans-serif]">
+    <div className="flex flex-col h-screen bg-[#f0f0f0]" style={{ fontFamily: '"Open Sans", sans-serif' }}>
       <div className="absolute top-0 right-0 z-50 flex items-center bg-[#f5f6f7] border-b border-l border-[#d0d0d0]">
         <button className="w-11 h-7 flex items-center justify-center hover:bg-[#c4daf3] text-gray-600 border-l border-[#d0d0d0]" title="Minimize">
           <div className="w-3 h-0.5 bg-current"></div>

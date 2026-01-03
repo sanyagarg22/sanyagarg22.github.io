@@ -27,6 +27,11 @@ export function StatusBar({
         )}
       </div>
 
+      {/* Center - copyright */}
+      <div className="flex-1 text-center">
+        <span className="text-gray-500">© sanya garg 2026</span>
+      </div>
+
       {/* Right side - canvas size and zoom */}
       <div className="flex items-center gap-2">
         {/* Canvas size */}
