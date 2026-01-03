@@ -179,29 +179,28 @@ export function Ribbon({
 
         {/* Edit Group */}
         <div className="flex flex-col items-center h-full">
-          <div className="flex items-start gap-0.5 flex-1">
+          <div className="flex flex-col items-center gap-1 flex-1 justify-center">
             <button
               onClick={onSave}
-              className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
+              className="flex flex-col items-center justify-center w-11 h-10 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
               title="Save (Ctrl+S)"
             >
               <span className="text-xl">💾</span>
-              <span className="text-[9px]">Save</span>
             </button>
-            <div className="flex flex-col gap-0.5">
+            <div className="flex gap-0.5">
               <button
                 onClick={onUndo}
-                className="flex items-center gap-1 px-1 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]"
+                className="flex items-center justify-center w-8 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]"
                 title="Undo (Ctrl+Z)"
               >
-                ↩ Undo
+                ↩
               </button>
               <button
                 onClick={onRedo}
-                className="flex items-center gap-1 px-1 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]"
+                className="flex items-center justify-center w-8 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]"
                 title="Redo (Ctrl+Y)"
               >
-                ↪ Redo
+                ↪
               </button>
             </div>
           </div>
@@ -210,31 +209,7 @@ export function Ribbon({
 
         <GroupDivider />
 
-        {/* Image Group */}
-        <div className="flex flex-col items-center h-full">
-          <div className="flex items-start gap-0.5 flex-1">
-            <button className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent">
-              <span className="text-lg">⬚</span>
-              <span className="text-[9px]">Select</span>
-              <span className="text-[8px]">▼</span>
-            </button>
-            <div className="flex flex-col gap-0.5">
-              <button className="flex items-center gap-1 px-1 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]">
-                ✂️ Crop
-              </button>
-              <button className="flex items-center gap-1 px-1 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]">
-                ↔️ Resize
-              </button>
-              <button className="flex items-center gap-1 px-1 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]">
-                🔄 Rotate ▼
-              </button>
-            </div>
-          </div>
-          <GroupLabel>Image</GroupLabel>
-        </div>
-
-        <GroupDivider />
-
+      
         {/* Tools Group */}
         <div className="flex flex-col items-center h-full">
           <div className="flex flex-wrap gap-0.5 w-24 flex-1 content-start">
@@ -254,7 +229,7 @@ export function Ribbon({
                   : "hover:bg-[#e5e5e5] border border-transparent"
                 }`}
             >
-              <span className="text-lg">🖌️</span>
+              <BrushIcon className="w-5 h-5" />
               <span className="text-[8px]">Brushes ▼</span>
             </button> */}
           </div>
