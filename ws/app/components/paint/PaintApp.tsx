@@ -23,6 +23,8 @@ export function PaintApp() {
   // Tab state
   const [activeTab, setActiveTab] = useState<string>("Home");
 
+  const [toClear, setToClear] = useState(false);
+
   const handleCanvasSizeChange = useCallback((width: number, height: number) => {
     setCanvasSize({ width, height });
   }, []);
@@ -65,6 +67,15 @@ export function PaintApp() {
     setActiveTab(tab);
   };
 
+  const startClear = () => {
+    setToClear(true);
+  };
+
+  const endClear = () => {
+    setToClear(false);
+  };
+
+
   return (
     <div className="flex flex-col h-screen bg-[#f0f0f0] font-['Segoe_UI',sans-serif]">
       {/* Ribbon (includes title bar) */}
@@ -82,6 +93,7 @@ export function PaintApp() {
         onRedo={handleRedo}
         activeTab={activeTab}
         onTabChange={handleTabChange}
+        onClearStart={startClear}
       />
       
       {/* Canvas Area */}
@@ -91,9 +103,11 @@ export function PaintApp() {
         activeTool={activeTool}
         activeTab={activeTab}
         brushSize={brushSize}
+        toClear={toClear}
         onColorPick={handleColorPick}
         onSizeChange={handleCanvasSizeChange}
         onCursorMove={handleCursorPositionChange}
+        onClearEnd={endClear}
       />
       
       {/* Status Bar */}

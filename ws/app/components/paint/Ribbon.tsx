@@ -16,6 +16,7 @@ interface RibbonProps {
   onRedo: () => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  onClearStart: () => void;
 }
 
 const PRESET_COLORS = [
@@ -44,6 +45,7 @@ export function Ribbon({
   onRedo,
   activeTab,
   onTabChange,
+  onClearStart,
 }: RibbonProps) {
   const ToolButton = ({ 
     tool, 
@@ -382,6 +384,22 @@ export function Ribbon({
             </div>
           </div>
           <GroupLabel>Colors</GroupLabel>
+        </div>
+
+        <GroupDivider />
+
+        <div className="flex flex-col items-center h-full">
+          <div className="flex items-start gap-0.5 flex-1">
+            <button
+              onClick={onClearStart}
+              className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
+              title="Clear Canvas"
+            >
+              <span className="text-xl">🗑️</span>
+              <span className="text-[9px]">Clear</span>
+            </button>
+          </div>
+          <GroupLabel>Canvas</GroupLabel>
         </div>
       </div>
       )}

@@ -11,9 +11,11 @@ interface CanvasProps {
   activeTool: Tool;
   brushSize: number;
   activeTab: string;
+  toClear: boolean;
   onColorPick?: (color: string) => void;
   onSizeChange?: (width: number, height: number) => void;
   onCursorMove?: (x: number, y: number) => void;
+  onClearEnd?: () => void;
 }
 
 export function Canvas({ 
@@ -21,10 +23,12 @@ export function Canvas({
   secondaryColor, 
   activeTool, 
   brushSize,
+  toClear,
   onColorPick,
   onSizeChange,
   onCursorMove,
   activeTab,
+  onClearEnd,
 }: CanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -35,36 +39,34 @@ export function Canvas({
   const [isInitialized, setIsInitialized] = useState(false);
   const padding = 32;
 
-  // Measure container and set canvas size
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const updateSize = () => {
       const width = container.clientWidth - padding;
-      const baseHeight = container.clientHeight - padding;
-      const height = activeTab === "About Me" ? Math.max(baseHeight, 500) : baseHeight;
+      const height = container.clientHeight - padding;
       
       if (width > 0 && height > 0) {
-        // if the size is the same, don't update and don't trigger a rerender
-        setCanvasSize((prev) => {
-          if (prev.width === width && prev.height === height) {
-            return prev;
+        // note: we are calling a state setter with a function, so it automatically passes in prev value 
+        setCanvasSize(
+          (prev) => {
+            if (prev.width === width && prev.height === height) {
+              return prev;
+            }
+            return { width, height };
           }
-          return { width, height };
-        });
+        );
       }
     };
 
     updateSize();
-
     const resizeObserver = new ResizeObserver(updateSize);
     resizeObserver.observe(container);
-
     return () => resizeObserver.disconnect();
   }, [activeTab]);
 
-  // Notify parent of size changes (in a separate effect to avoid render-time setState)
+  // Notify PaintApp if the canvas size changes
   useEffect(() => {
     if (canvasSize.width > 0 && canvasSize.height > 0) {
       onSizeChange?.(canvasSize.width, canvasSize.height);
@@ -80,15 +82,16 @@ export function Canvas({
     if (!ctx) return;
 
     // Only fill with white on first init, not on every resize to preserve drawing when resizing
-    if (!isInitialized && canvasSize.width > 0 && canvasSize.height > 0) {
+    if ((!isInitialized && canvasSize.width > 0 && canvasSize.height > 0) || toClear) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
-      
       ctx.imageSmoothingEnabled = false;
-      
       setIsInitialized(true);
     }
-  }, [canvasSize, isInitialized]);
+    if (toClear) {
+      onClearEnd?.();
+    }
+  }, [canvasSize, isInitialized, toClear]);
 
   const getCanvasCoords = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
@@ -284,10 +287,10 @@ export function Home(){
         />
       </div>
         <div className="text-gray-600 text-xl mt-2 pointer-events-none">
-          welcome to my personal website inspired by the legacy microsoft paint app.
+          welcome to my personal website inspired by the legacy microsoft paint app!
         </div>
         <div className="text-gray-600 text-xl mt-2 pointer-events-none" style={{ color: "#7092be" }}>
-           feel free to make a doodle or two while you're here! :)
+           feel free to make a doodle or two while you're here :)
         </div>
         <Icons />
     </div>
