@@ -35,7 +35,7 @@ export function About() {
           <div className="flex-1 max-w-2xl">
             <img src="/hello.png" alt="hello" className="w-50 h-30 object-cover"/>
             <div className="text-gray-600 text-xl mb-10 mt-10">
-              I'm a software engineer and recent graduate from Rice University currently based in the SF bay area. In addition to doodling in Microsoft Paint, I like to dabble in many forms of art, try new restaurants and drinks, and play pickleball and squash. Feel free to check out some of my art and other projects below!
+              I'm a software engineer and recent graduate from Rice University currently based in the SF bay area. In addition to doodling in Microsoft Paint, I like to dabble in many forms of art, try the same drink at different coffee shops, and play pickleball and squash. Feel free to check out some of my art and other projects below!
             </div>
             
             <div className="mb-12">

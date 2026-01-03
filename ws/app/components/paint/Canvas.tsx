@@ -154,21 +154,29 @@ export function Canvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const targetColor = getPixelColor(Math.floor(x), Math.floor(y));
-    if (!targetColor) return;
-    
-    // if clicking on the same color, don't do anything
-    if (targetColor === color) return;
+    x = Math.floor(x);
+    y = Math.floor(y);
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+
+    const getPixelIndex = (px: number, py: number) => (py * canvas.width + px) * 4;
+
+    const targetIdx = getPixelIndex(x, y);
+    const targetRGB = pixels.slice(targetIdx, targetIdx + 3);
+
+    const fillRGB = [parseInt(color.slice(1, 3), 16), parseInt(color.slice(3, 5), 16), parseInt(color.slice(5, 7), 16), 255];
+
+    if (targetRGB[0] === fillRGB[0] && targetRGB[1] === fillRGB[1] && targetRGB[2] === fillRGB[2]) return;
 
     const queue: { x: number; y: number }[] = [];
-    const visited: Set<string> = new Set();
+    const visited: Set<number> = new Set();
     
-    queue.push({ x: Math.floor(x), y: Math.floor(y) });
-    visited.add(`${Math.floor(x)},${Math.floor(y)}`);
+    queue.push({ x: x, y: y });
+    visited.add(y * canvas.width + x);
 
     const xshift = [0, 0, 1, -1];
     const yshift = [1, -1, 0, 0];
-    ctx.fillStyle = color;
 
     while (queue.length > 0) {
       const curr = queue.shift();
@@ -176,22 +184,29 @@ export function Canvas({
       
       if (curr.x < 0 || curr.x >= canvas.width || curr.y < 0 || curr.y >= canvas.height) continue;
       
-      ctx.fillRect(curr.x, curr.y, 1, 1);
+      const idx = getPixelIndex(curr.x, curr.y);
+      for (let i = 0; i < fillRGB.length; i++) {
+        pixels[idx + i] = fillRGB[i];
+      }
       
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 4; i++) { 
         const newx = curr.x + xshift[i];
         const newy = curr.y + yshift[i];
-        const key = `${newx},${newy}`;
+        const key = newy * canvas.width + newx;
         
         if (visited.has(key) || newx < 0 || newx >= canvas.width || newy < 0 || newy >= canvas.height) continue;
-
-        if (getPixelColor(newx, newy) === targetColor) {
+        const neighborIdx = getPixelIndex(newx, newy);
+        if (pixels[neighborIdx] === targetRGB[0] && 
+            pixels[neighborIdx + 1] === targetRGB[1] && 
+            pixels[neighborIdx + 2] === targetRGB[2]) {
           queue.push({ x: newx, y: newy });
           visited.add(key);
         }
       }
     }
-  }, [getPixelColor]);
+
+    ctx.putImageData(imageData, 0, 0);
+  }, []);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const { x, y } = getCanvasCoords(e);

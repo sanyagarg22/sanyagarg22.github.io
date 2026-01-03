@@ -68,6 +68,7 @@ export function PaintApp() {
 
   const handleTabChange = (tab: string) => {
     setActiveTool("pencil");
+    setPrimaryColor("#000000");
     setActiveTab(tab);
   };
 
