@@ -73,7 +73,7 @@ export function Canvas({
     }
   }, [canvasSize, onSizeChange]);
 
-  // Initialize canvas with white background 
+  // Initialize canvas with white background and handle resizing
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -81,13 +81,23 @@ export function Canvas({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Only fill with white on first init, not on every resize to preserve drawing when resizing
+    const savedImageData = (canvas.width > 0 && canvas.height > 0 && isInitialized && !toClear)
+      ? ctx.getImageData(0, 0, canvas.width, canvas.height)
+      : null;
+
+    canvas.width = canvasSize.width;
+    canvas.height = canvasSize.height;
+
+    // Restore saved canvas
     if ((!isInitialized && canvasSize.width > 0 && canvasSize.height > 0) || toClear) {
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvasSize.width, canvasSize.height);
       ctx.imageSmoothingEnabled = false;
       setIsInitialized(true);
     }
+    if (savedImageData && !toClear) {
+      ctx.putImageData(savedImageData, 0, 0);
+    } 
     if (toClear) {
       onClearEnd?.();
     }
@@ -267,8 +277,6 @@ export function Canvas({
         <div className="relative inline-block">
           <canvas
             ref={canvasRef}
-            width={canvasSize.width}
-            height={canvasSize.height}
             className="bg-white cursor-crosshair shadow-md"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
