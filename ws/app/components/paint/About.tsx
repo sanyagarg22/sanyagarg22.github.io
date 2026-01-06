@@ -41,7 +41,6 @@ export function About() {
             <div className="text-gray-600 text-xl mb-10 mt-10 relative">
               I'm a software engineer and recent graduate from Rice University currently based in the SF bay area. In addition to doodling in Microsoft Paint, I like to dabble in many forms of art, try the same drink at different coffee shops, and play pickleball and squash. Feel free to check out some of my art and other projects below!
             </div>
-
             <div className="mb-12">
               <h3 className="text-3xl font-bold mb-6" style={{ color: "#7092be" }}>
                 work experience
@@ -50,7 +49,7 @@ export function About() {
                 {workExperiences.map((experience, index) => (
                   <div 
                     key={index}
-                    className="bg-white rounded-lg border-2 border-[#948ab8] p-5 shadow-sm hover:shadow-md hover:border-[#7092be] transition-all"
+                    className="bg-white rounded-lg border-2 border-[#948ab8] p-5 shadow-sm hover:shadow-md hover:border-[#7092be] hover:translate-x-2 transition-all"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div>
