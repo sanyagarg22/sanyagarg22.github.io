@@ -333,16 +333,10 @@ export function Ribbon({
         <GroupDivider />
 
         {/* Edit Group */}
-        <div className="flex flex-col items-center h-full">
+        {/* <div className="flex flex-col items-center h-full">
           <div className="flex flex-col items-center gap-1 flex-1 justify-center">
-            <button
-              onClick={onSave}
-              className="flex flex-col items-center justify-center w-11 h-10 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
-              title="Save (Ctrl+S)"
-            >
-              <span className="text-xl">💾</span>
-            </button>
-            {/* <div className="flex gap-0.5">
+           
+            <div className="flex gap-0.5">
               <button
                 onClick={onUndo}
                 className="flex items-center justify-center w-8 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]"
@@ -357,9 +351,33 @@ export function Ribbon({
               >
                 ↪
               </button>
-            </div> */}
+            </div>
           </div>
           <GroupLabel>Edit</GroupLabel>
+        </div> */}
+
+        {/* Canvas Group */}
+
+        <div className="flex flex-col items-center h-full">
+          <div className="flex items-start gap-0.5 flex-1">
+            <button
+              onClick={onClearStart}
+              className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
+              title="Clear Canvas"
+            >
+              <span className="text-xl">🗑️</span>
+              <span className="text-[9px] text-gray-500">Clear</span>
+            </button>
+            <button
+              onClick={onSave}
+              className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
+              title="Save (Ctrl+S)"
+            >
+              <span className="text-xl">💾</span>
+              <span className="text-[9px] text-gray-500">Save</span>
+            </button>
+          </div>
+          <GroupLabel>Canvas</GroupLabel>
         </div>
 
         <GroupDivider />
@@ -652,22 +670,8 @@ export function Ribbon({
           </div>
           <GroupLabel>Colors</GroupLabel>
         </div>
-
+        
         <GroupDivider />
-
-        <div className="flex flex-col items-center h-full">
-          <div className="flex items-start gap-0.5 flex-1">
-            <button
-              onClick={onClearStart}
-              className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
-              title="Clear Canvas"
-            >
-              <span className="text-xl">🗑️</span>
-              <span className="text-[9px] text-gray-500">Clear</span>
-            </button>
-          </div>
-          <GroupLabel>Canvas</GroupLabel>
-        </div>
       </div>
       )}
 
