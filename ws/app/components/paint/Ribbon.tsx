@@ -342,7 +342,7 @@ export function Ribbon({
             >
               <span className="text-xl">💾</span>
             </button>
-            <div className="flex gap-0.5">
+            {/* <div className="flex gap-0.5">
               <button
                 onClick={onUndo}
                 className="flex items-center justify-center w-8 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]"
@@ -357,7 +357,7 @@ export function Ribbon({
               >
                 ↪
               </button>
-            </div>
+            </div> */}
           </div>
           <GroupLabel>Edit</GroupLabel>
         </div>
