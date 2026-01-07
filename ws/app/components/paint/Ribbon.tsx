@@ -218,7 +218,7 @@ export function Ribbon({
             <ToolButton tool="text" icon={<span className="font-serif font-bold text-base">A</span>} label="Text" />
             <ToolButton tool="eraser" icon="🧽" label="Eraser" />
             <ToolButton tool="picker" icon="💧" label="Color picker" />
-            <ToolButton tool="brush" icon="🔍" label="Magnifier" />
+            <ToolButton tool="magnifier" icon="🔍" label="Magnifier" />
           </div>
           <div className="flex items-center gap-0.5 mb-0.5">
             {/* <button

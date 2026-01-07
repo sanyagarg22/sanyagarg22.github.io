@@ -1,6 +1,6 @@
 export type Tool = 
   | "pencil" 
-  | "brush" 
+  | "magnifier" 
   | "eraser" 
   | "fill" 
   | "text" 

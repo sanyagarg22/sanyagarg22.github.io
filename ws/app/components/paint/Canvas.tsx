@@ -238,7 +238,7 @@ export function Canvas({
     const color = e.button === 2 ? secondaryColor : primaryColor;
     setCurrentColor(color);
 
-    if (activeTool === "brush") {
+    if (activeTool === "magnifier") {
       if (e.button === 2) { // right click = zoom out
         onZoomChange?.(Math.max(10, zoom - 50));
       } else { // left click = zoom in
@@ -292,7 +292,7 @@ export function Canvas({
   
   // Determine cursor style based on active tool
   const getCursorStyle = () => {
-    if (activeTool === "brush") return "zoom-in";
+    if (activeTool === "magnifier") return "zoom-in";
     if (activeTool === "picker") return "crosshair";
     return "crosshair";
   };
