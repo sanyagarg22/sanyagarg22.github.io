@@ -1,6 +1,6 @@
 "use client";
 
-import { Tool } from "./types";
+import { Tool, OutlineStyle, FillStyle } from "./types";
 import { useState, useRef, useEffect } from "react";
 
 interface RibbonProps {
@@ -18,6 +18,10 @@ interface RibbonProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   onClearStart: () => void;
+  outlineStyle: OutlineStyle;
+  onOutlineStyleChange: (style: OutlineStyle) => void;
+  fillStyle: FillStyle;
+  onFillStyleChange: (style: FillStyle) => void;
 }
 
 const PRESET_COLORS = [
@@ -41,10 +45,27 @@ export function Ribbon({
   activeTab,
   onTabChange,
   onClearStart,
+  outlineStyle,
+  onOutlineStyleChange,
+  fillStyle,
+  onFillStyleChange,
 }: RibbonProps) {
   const [showSizeSlider, setShowSizeSlider] = useState(false);
+  const [showOutlineMenu, setShowOutlineMenu] = useState(false);
+  const [showFillMenu, setShowFillMenu] = useState(false);
+  const [showColorEditor, setShowColorEditor] = useState(false);
+  const [editingColor, setEditingColor] = useState<'primary' | 'secondary'>('primary');
+  const [tempColor, setTempColor] = useState('#000000');
+  const [hue, setHue] = useState(0);
+  const [saturation, setSaturation] = useState(100);
+  const [lightness, setLightness] = useState(50);
   const sizeButtonRef = useRef<HTMLDivElement>(null);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const outlineButtonRef = useRef<HTMLDivElement>(null);
+  const outlineMenuRef = useRef<HTMLDivElement>(null);
+  const fillButtonRef = useRef<HTMLDivElement>(null);
+  const fillMenuRef = useRef<HTMLDivElement>(null);
+  const colorEditorRef = useRef<HTMLDivElement>(null);
 
   // Close slider when clicking outside
   useEffect(() => {
@@ -67,6 +88,126 @@ export function Ribbon({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showSizeSlider]);
+
+  // Close outline menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        outlineMenuRef.current && 
+        !outlineMenuRef.current.contains(event.target as Node) &&
+        outlineButtonRef.current &&
+        !outlineButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowOutlineMenu(false);
+      }
+    };
+
+    if (showOutlineMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showOutlineMenu]);
+
+  // Close fill menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        fillMenuRef.current && 
+        !fillMenuRef.current.contains(event.target as Node) &&
+        fillButtonRef.current &&
+        !fillButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowFillMenu(false);
+      }
+    };
+
+    if (showFillMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showFillMenu]);
+
+  // Helper functions for color conversion
+  const hexToHSL = (hex: string): { h: number; s: number; l: number } => {
+    const r = parseInt(hex.slice(1, 3), 16) / 255;
+    const g = parseInt(hex.slice(3, 5), 16) / 255;
+    const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
+
+    if (max !== min) {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      
+      switch (max) {
+        case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+        case g: h = ((b - r) / d + 2) / 6; break;
+        case b: h = ((r - g) / d + 4) / 6; break;
+      }
+    }
+
+    return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  };
+
+  const hslToHex = (h: number, s: number, l: number): string => {
+    s /= 100;
+    l /= 100;
+
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+
+    if (h >= 0 && h < 60) { r = c; g = x; b = 0; }
+    else if (h >= 60 && h < 120) { r = x; g = c; b = 0; }
+    else if (h >= 120 && h < 180) { r = 0; g = c; b = x; }
+    else if (h >= 180 && h < 240) { r = 0; g = x; b = c; }
+    else if (h >= 240 && h < 300) { r = x; g = 0; b = c; }
+    else if (h >= 300 && h < 360) { r = c; g = 0; b = x; }
+
+    const toHex = (n: number) => {
+      const hex = Math.round((n + m) * 255).toString(16);
+      return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  };
+
+  const openColorEditor = (colorType: 'primary' | 'secondary') => {
+    const color = colorType === 'primary' ? primaryColor : secondaryColor;
+    setEditingColor(colorType);
+    setTempColor(color);
+    const hsl = hexToHSL(color);
+    setHue(hsl.h);
+    setSaturation(hsl.s);
+    setLightness(hsl.l);
+    setShowColorEditor(true);
+  };
+
+  const applyColor = () => {
+    if (editingColor === 'primary') {
+      onPrimaryColorChange(tempColor);
+    } else {
+      onSecondaryColorChange(tempColor);
+    }
+    setShowColorEditor(false);
+  };
+
+  // Update temp color when HSL changes
+  useEffect(() => {
+    if (showColorEditor) {
+      setTempColor(hslToHex(hue, saturation, lightness));
+    }
+  }, [hue, saturation, lightness, showColorEditor]);
 
   const ToolButton = ({ 
     tool, 
@@ -234,19 +375,6 @@ export function Ribbon({
             <ToolButton tool="picker" icon="💧" label="Color picker" />
             <ToolButton tool="magnifier" icon="🔍" label="Magnifier" />
           </div>
-          <div className="flex items-center gap-0.5 mb-0.5">
-            {/* <button
-              onClick={() => onToolChange("brush")}
-              className={`flex flex-col items-center justify-center w-12 h-9 rounded-sm
-                ${activeTool === "brush"
-                  ? "bg-[#fce4b0] border border-[#e5c47b]"
-                  : "hover:bg-[#e5e5e5] border border-transparent"
-                }`}
-            >
-              <BrushIcon className="w-5 h-5" />
-              <span className="text-[8px]">Brushes ▼</span>
-            </button> */}
-          </div>
           <GroupLabel>Tools</GroupLabel>
         </div>
 
@@ -265,12 +393,121 @@ export function Ribbon({
               <ToolButton tool="circle" icon="⬭" label="Ellipse" />
             </div>
             <div className="flex flex-col gap-0.5">
-              <button className="flex items-center gap-1 px-1 h-6 hover:bg-[#e5e5e5] rounded-sm text-[10px] border border-gray-300">
-                ○ Outline ▼
-              </button>
-              <button className="flex items-center gap-1 px-1 h-6 hover:bg-[#e5e5e5] rounded-sm text-[10px] border border-gray-300">
-                ▣ Fill ▼
-              </button>
+              {/* Outline Dropdown */}
+              <div className="relative" ref={outlineButtonRef}>
+                <button 
+                  onClick={() => setShowOutlineMenu(!showOutlineMenu)}
+                  className={`flex items-center justify-between px-2 h-6 w-20 rounded-sm text-[10px] border transition-colors font-medium whitespace-nowrap
+                    ${showOutlineMenu 
+                      ? "bg-[#c4daf3] border-[#7eb4ea]" 
+                      : "hover:bg-[#e5e5e5] border-gray-300 bg-white"
+                    }`}
+                  title="Outline style"
+                >
+                  <span>○ Outline</span>
+                  <span className="text-[9px]">▼</span>
+                </button>
+
+                {/* Outline Menu Dropdown */}
+                {showOutlineMenu && (
+                  <div 
+                    ref={outlineMenuRef}
+                    className="absolute top-full left-0 mt-1 bg-white border-2 border-[#b8d0ec] rounded shadow-lg z-50 w-36"
+                  >
+                    <button
+                      onClick={() => {
+                        onOutlineStyleChange("none");
+                        setShowOutlineMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
+                        ${outlineStyle === "none" ? "bg-[#c4daf3]" : ""}`}
+                    >
+                      <div className="w-8 h-1"></div>
+                      <span className="font-medium">No outline</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        onOutlineStyleChange("solid");
+                        setShowOutlineMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
+                        ${outlineStyle === "solid" ? "bg-[#c4daf3]" : ""}`}
+                    >
+                      <div className="w-8 h-0.5 bg-black"></div>
+                      <span className="font-medium">Solid</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        onOutlineStyleChange("dashed");
+                        setShowOutlineMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
+                        ${outlineStyle === "dashed" ? "bg-[#c4daf3]" : ""}`}
+                    >
+                      <div className="w-8 h-0.5 border-t-2 border-dashed border-black"></div>
+                      <span className="font-medium">Dashed</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        onOutlineStyleChange("dotted");
+                        setShowOutlineMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
+                        ${outlineStyle === "dotted" ? "bg-[#c4daf3]" : ""}`}
+                    >
+                      <div className="w-8 h-0.5 border-t-2 border-dotted border-black"></div>
+                      <span className="font-medium">Dotted</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Fill Dropdown */}
+              <div className="relative" ref={fillButtonRef}>
+                <button 
+                  onClick={() => setShowFillMenu(!showFillMenu)}
+                  className={`flex items-center justify-between px-2 h-6 w-20 rounded-sm text-[10px] border transition-colors font-medium whitespace-nowrap
+                    ${showFillMenu 
+                      ? "bg-[#c4daf3] border-[#7eb4ea]" 
+                      : "hover:bg-[#e5e5e5] border-gray-300 bg-white"
+                    }`}
+                  title="Fill style"
+                >
+                  <span>▣ Fill</span>
+                  <span className="text-[9px]">▼</span>
+                </button>
+
+                {/* Fill Menu Dropdown */}
+                {showFillMenu && (
+                  <div 
+                    ref={fillMenuRef}
+                    className="absolute top-full left-0 mt-1 bg-white border-2 border-[#b8d0ec] rounded shadow-lg z-50 w-36"
+                  >
+                    <button
+                      onClick={() => {
+                        onFillStyleChange("none");
+                        setShowFillMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
+                        ${fillStyle === "none" ? "bg-[#c4daf3]" : ""}`}
+                    >
+                      <div className="w-4 h-4 border border-black"></div>
+                      <span className="font-medium">No fill</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        onFillStyleChange("solid");
+                        setShowFillMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
+                        ${fillStyle === "solid" ? "bg-[#c4daf3]" : ""}`}
+                    >
+                      <div className="w-4 h-4 bg-black border border-black"></div>
+                      <span className="font-medium">Solid fill</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <GroupLabel>Shapes</GroupLabel>
@@ -325,7 +562,7 @@ export function Ribbon({
                     <span>50px</span>
                   </div>
                   {/* Quick size presets */}
-                  <div className="flex gap-1 justify-center pt-1 border-t border-gray-200">
+                  <div className="flex gap-1 justify-center pt-1 border-t border-[#d0d0d0]">
                     {[1, 3, 5, 8, 12, 16].map((size) => (
                       <button
                         key={size}
@@ -363,32 +600,20 @@ export function Ribbon({
             <div className="flex gap-1">
               <div className="flex flex-col items-center">
                 <div
-                  className="w-7 h-7 border-2 border-gray-400 cursor-pointer shadow-inner"
+                  className="w-7 h-7 border-2 border-gray-400 cursor-pointer shadow-inner hover:border-[#0078d7] transition-colors"
                   style={{ backgroundColor: primaryColor }}
-                  onClick={() => {
-                    const input = document.createElement("input");
-                    input.type = "color";
-                    input.value = primaryColor;
-                    input.onchange = (e) => onPrimaryColorChange((e.target as HTMLInputElement).value);
-                    input.click();
-                  }}
-                  title="Color 1"
+                  onClick={() => openColorEditor('primary')}
+                  title="Color 1 - Click to edit"
                 />
                 <span className="text-[9px] text-gray-600 mt-0.5">Color</span>
                 <span className="text-[9px] text-gray-600">1</span>
               </div>
               <div className="flex flex-col items-center">
                 <div
-                  className="w-7 h-7 border-2 border-gray-400 cursor-pointer shadow-inner"
+                  className="w-7 h-7 border-2 border-gray-400 cursor-pointer shadow-inner hover:border-[#0078d7] transition-colors"
                   style={{ backgroundColor: secondaryColor }}
-                  onClick={() => {
-                    const input = document.createElement("input");
-                    input.type = "color";
-                    input.value = secondaryColor;
-                    input.onchange = (e) => onSecondaryColorChange((e.target as HTMLInputElement).value);
-                    input.click();
-                  }}
-                  title="Color 2"
+                  onClick={() => openColorEditor('secondary')}
+                  title="Color 2 - Click to edit"
                 />
                 <span className="text-[9px] text-gray-600 mt-0.5">Color</span>
                 <span className="text-[9px] text-gray-600">2</span>
@@ -414,7 +639,11 @@ export function Ribbon({
 
             {/* Edit Colors */}
             <div className="flex flex-col items-center">
-              <button className="w-8 h-8 flex items-center justify-center hover:bg-[#e5e5e5] rounded-sm border border-gray-300">
+              <button 
+                onClick={() => openColorEditor('primary')}
+                className="w-8 h-8 flex items-center justify-center hover:bg-[#e5e5e5] rounded-sm border border-gray-300"
+                title="Edit colors"
+              >
                 <span className="text-lg">🎨</span>
               </button>
               <span className="text-[8px] text-gray-600 mt-0.5">Edit</span>
@@ -434,12 +663,176 @@ export function Ribbon({
               title="Clear Canvas"
             >
               <span className="text-xl">🗑️</span>
-              <span className="text-[9px]">Clear</span>
+              <span className="text-[9px] text-gray-500">Clear</span>
             </button>
           </div>
           <GroupLabel>Canvas</GroupLabel>
         </div>
       </div>
+      )}
+
+      {/* Color Editor Popup */}
+      {showColorEditor && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div 
+            ref={colorEditorRef}
+            className="bg-white border-2 border-[#b8d0ec] rounded shadow-2xl w-96"
+          >
+            {/* Title bar */}
+            <div className="bg-[#dce8f5] border-b-2 border-[#b8d0ec] px-3 py-2.5 flex items-center justify-between">
+              <span className="text-sm font-semibold text-gray-500">Edit Colors</span>
+              <button 
+                onClick={() => setShowColorEditor(false)}
+                className="hover:bg-[#c4daf3] w-6 h-6 flex items-center justify-center rounded text-lg text-gray-600 transition-colors"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 space-y-4 bg-[#f5f6f7]">
+              {/* Color preview */}
+              <div className="flex items-center gap-3">
+                <div className="flex-1">
+                  <div className="text-xs font-semibold text-gray-600 mb-1">Current</div>
+                  <div 
+                    className="w-full h-12 border-2 border-[#d0d0d0] rounded shadow-inner"
+                    style={{ backgroundColor: editingColor === 'primary' ? primaryColor : secondaryColor }}
+                  />
+                </div>
+                <div className="flex-1">
+                  <div className="text-xs font-semibold text-gray-600 mb-1">New</div>
+                  <div 
+                    className="w-full h-12 border-2 border-[#d0d0d0] rounded shadow-inner"
+                    style={{ backgroundColor: tempColor }}
+                  />
+                </div>
+              </div>
+
+              {/* Color sliders */}
+              <div className="space-y-3">
+                {/* Hue */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-gray-700">Hue</label>
+                    <span className="text-xs font-bold text-[#2b579a]">{hue}°</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="360"
+                    value={hue}
+                    onChange={(e) => setHue(Number(e.target.value))}
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: 'linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)'
+                    }}
+                  />
+                </div>
+
+                {/* Saturation */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-gray-700">Saturation</label>
+                    <span className="text-xs font-bold text-[#2b579a]">{saturation}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={saturation}
+                    onChange={(e) => setSaturation(Number(e.target.value))}
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, hsl(${hue}, 0%, ${lightness}%), hsl(${hue}, 100%, ${lightness}%))`
+                    }}
+                  />
+                </div>
+
+                {/* Lightness */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-semibold text-gray-700">Lightness</label>
+                    <span className="text-xs font-bold text-[#2b579a]">{lightness}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={lightness}
+                    onChange={(e) => setLightness(Number(e.target.value))}
+                    className="w-full h-2 rounded-lg appearance-none cursor-pointer"
+                    style={{
+                      background: `linear-gradient(to right, hsl(${hue}, ${saturation}%, 0%), hsl(${hue}, ${saturation}%, 50%), hsl(${hue}, ${saturation}%, 100%))`
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Hex input */}
+              <div>
+                <label className="text-xs font-semibold text-gray-700 block mb-1">Hex Color</label>
+                <input
+                  type="text"
+                  value={tempColor}
+                  onChange={(e) => {
+                    const hex = e.target.value;
+                    if (/^#[0-9A-Fa-f]{0,6}$/.test(hex)) {
+                      setTempColor(hex);
+                      if (hex.length === 7) {
+                        const hsl = hexToHSL(hex);
+                        setHue(hsl.h);
+                        setSaturation(hsl.s);
+                        setLightness(hsl.l);
+                      }
+                    }
+                  }}
+                  className="w-full px-3 py-2 border-2 border-[#d0d0d0] rounded text-sm font-mono uppercase focus:border-[#7eb4ea] focus:outline-none transition-colors"
+                  placeholder="#000000"
+                  maxLength={7}
+                />
+              </div>
+
+              {/* Preset colors */}
+              <div>
+                <div className="text-xs font-semibold text-gray-700 mb-2">Basic Colors</div>
+                <div className="grid grid-cols-10 gap-1">
+                  {PRESET_COLORS.map((color, index) => (
+                    <button
+                      key={index}
+                      className="w-6 h-6 border border-gray-400 hover:scale-110 hover:border-[#7eb4ea] transition-all rounded"
+                      style={{ backgroundColor: color }}
+                      onClick={() => {
+                        setTempColor(color);
+                        const hsl = hexToHSL(color);
+                        setHue(hsl.h);
+                        setSaturation(hsl.s);
+                        setLightness(hsl.l);
+                      }}
+                      title={color}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-2 justify-end pt-2 border-t border-[#d0d0d0]">
+                <button
+                  onClick={applyColor}
+                  className="px-6 py-2 bg-[#7eb4ea] hover:bg-[#6ba3d9] text-white text-sm font-semibold rounded border border-[#6ba3d9] shadow-sm transition-colors"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={() => setShowColorEditor(false)}
+                  className="px-6 py-2 bg-white hover:bg-[#e5e5e5] text-gray-700 text-sm font-semibold rounded border-2 border-[#d0d0d0] transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

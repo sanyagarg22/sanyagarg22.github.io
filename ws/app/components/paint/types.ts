@@ -14,3 +14,6 @@ export type Tool =
   | "diamond"
   ;
 
+export type OutlineStyle = "none" | "solid" | "dashed" | "dotted";
+export type FillStyle = "none" | "solid";
+

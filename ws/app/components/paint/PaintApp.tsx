@@ -4,12 +4,14 @@ import { useState, useCallback } from "react";
 import { Ribbon } from "./Ribbon";
 import { Canvas } from "./Canvas";
 import { StatusBar } from "./StatusBar";
-import { Tool } from "./types";
+import { Tool, OutlineStyle, FillStyle } from "./types";
 
 export function PaintApp() {
   // Tool state
   const [activeTool, setActiveTool] = useState<Tool>("pencil");
   const [brushSize, setBrushSize] = useState(5);
+  const [outlineStyle, setOutlineStyle] = useState<OutlineStyle>("solid");
+  const [fillStyle, setFillStyle] = useState<FillStyle>("solid");
   
   // Color state
   const [primaryColor, setPrimaryColor] = useState("#000000");
@@ -73,6 +75,7 @@ export function PaintApp() {
   };
 
   const startClear = () => {
+    setActiveTool("pencil");
     setToClear(true);
   };
 
@@ -118,6 +121,10 @@ export function PaintApp() {
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onClearStart={startClear}
+        outlineStyle={outlineStyle}
+        onOutlineStyleChange={setOutlineStyle}
+        fillStyle={fillStyle}
+        onFillStyleChange={setFillStyle}
       />
       
       {/* Canvas Area */}
@@ -129,6 +136,8 @@ export function PaintApp() {
         brushSize={brushSize}
         toClear={toClear}
         zoom={zoom}
+        outlineStyle={outlineStyle}
+        fillStyle={fillStyle}
         onColorPick={handleColorPick}
         onSizeChange={handleCanvasSizeChange}
         onCursorMove={handleCursorPositionChange}

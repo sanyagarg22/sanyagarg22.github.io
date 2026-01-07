@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useState, useCallback } from "react";
-import { Tool } from "./types";
+import { Tool, OutlineStyle, FillStyle } from "./types";
 import { Projects } from "./Projects";
 import { About } from "./About";
 
@@ -13,6 +13,8 @@ interface CanvasProps {
   activeTab: string;
   toClear: boolean;
   zoom: number;
+  outlineStyle: OutlineStyle;
+  fillStyle: FillStyle;
   onColorPick?: (color: string) => void;
   onSizeChange?: (width: number, height: number) => void;
   onCursorMove?: (x: number, y: number) => void;
@@ -27,6 +29,8 @@ export function Canvas({
   brushSize,
   toClear,
   zoom,
+  outlineStyle,
+  fillStyle,
   onColorPick,
   onSizeChange,
   onCursorMove,
@@ -261,9 +265,20 @@ export function Canvas({
     }
     
     ctx.strokeStyle = color;
+    ctx.fillStyle = color;
     ctx.lineWidth = brushSize;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
+    
+    // Apply outline style
+    if (outlineStyle === "dashed") {
+      ctx.setLineDash([brushSize*2, brushSize*2]);
+    } else if (outlineStyle === "dotted") {
+      ctx.setLineDash([brushSize/15, brushSize*2]);
+    } else {
+      ctx.setLineDash([]);
+    }
+    
     ctx.beginPath();
     
     if (activeTool === "circle") {
@@ -296,8 +311,26 @@ export function Canvas({
       ctx.lineTo(startX, (startY + endY) / 2); 
       ctx.closePath();
     }
-    ctx.stroke();
-  }, [brushSize, savedImageData, activeTool]);
+    
+    // Apply fill and stroke based on separate fill and outline styles
+    // Lines and arcs always just stroke, shapes can have fill/outline/both
+    if (activeTool === "line" || activeTool === "arc") {
+      if (outlineStyle !== "none") {
+        ctx.stroke();
+      }
+    } else {
+      // For shapes, apply fill first, then outline
+      if (fillStyle === "solid") {
+        ctx.fill();
+      }
+      if (outlineStyle !== "none") {
+        ctx.stroke();
+      }
+    }
+    
+    // Reset line dash
+    ctx.setLineDash([]);
+  }, [brushSize, savedImageData, activeTool, outlineStyle, fillStyle]);
 
 
   const renderText = useCallback((x: number, y: number, text: string, color: string) => {
