@@ -270,7 +270,6 @@ export function Canvas({
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     
-    // Apply outline style
     if (outlineStyle === "dashed") {
       ctx.setLineDash([brushSize*2, brushSize*2]);
     } else if (outlineStyle === "dotted") {
@@ -312,8 +311,6 @@ export function Canvas({
       ctx.closePath();
     }
     
-    // Apply fill and stroke based on separate fill and outline styles
-    // Lines and arcs always just stroke, shapes can have fill/outline/both
     if (activeTool === "line" || activeTool === "arc") {
       if (outlineStyle !== "none") {
         ctx.stroke();
@@ -529,16 +526,16 @@ export function Home(){
     <div className="text-7xl font-bold pointer-events-none">
         <div className="relative inline-block">
           <img
-            src="/sanya_cursive.png"
+            src="/icons/sanya_cursive.png"
             alt="sanya garg"
             className="w-120 h-40 object-cover ml-8"
           />
           <div
-            className="w-12 h-12 bg-cover bg-center absolute top-0 -right-16 bg-[url('/star.png')] hover:rotate-20 transition-all duration-300 pointer-events-auto"
-            style={{ backgroundImage: "url('/star.png')" }}
+            className="w-12 h-12 bg-cover bg-center absolute top-0 -right-16 bg-[url('/icons/star.png')] hover:rotate-20 transition-all duration-300 pointer-events-auto"
+            style={{ backgroundImage: "url('/icons/star.png')" }}
           />
           <img
-            src="/strawberry.png"
+            src="/icons/strawberry.png"
             alt="strawberry"
             className="w-11 h-12 object-cover absolute bottom-5 left-0  hover:-rotate-20 transition-all duration-300 pointer-events-auto -translate-x-1/2 translate-y-1/4"
           />

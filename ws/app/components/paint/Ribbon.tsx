@@ -254,7 +254,7 @@ export function Ribbon({
             className="px-4 py-2 text-md font-semibold text-[#948ab8] rounded-t transition-colors flex items-center gap-2 mb-0"
           >
             <img
-              src="/sg2.png"
+              src="/icons/sg2.png"
               alt="hello doodle"
               className="w-10 h-6 object-cover"
             />

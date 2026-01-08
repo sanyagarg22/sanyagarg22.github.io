@@ -93,7 +93,7 @@ const projectsData: ProjectProps[] = [
     title: "A Study of Prefix Sharing in LLM Serving",
     description: "Modified vLLM to use a trace-driven simulator and systematically evaluate prefix sharing across multiple workloads. We designed and evaluated an optimized eviction policy for mixed workloads that reduced time-to-first-token by up to 8%.",
     tags: ["Python", "vLLM"],
-    liveUrl: "/COMP_436_Project.pdf",
+    liveUrl: "/files/COMP_436_Project.pdf",
     year: "2025",
   },
   {
@@ -116,7 +116,7 @@ const projectsData: ProjectProps[] = [
     title: "Zero-Shot Image Classification with BLISS",
     description: "Built a zero-shot image classification system using ResNet feature extraction and BLISS clustering to organize images into balanced semantic groups and associate unseen classes with labels.",
     tags: ["Python", "Pytorch"],
-    liveUrl: "/COMP_480_Project.pdf",
+    liveUrl: "/files/COMP_480_Project.pdf",
     year: "2023-2025",
   },
 ];
@@ -131,7 +131,7 @@ export function Projects() {
             <h1 className="text-7xl font-bold mb-4" style={{ color: "#7092be" }}>
               projects
             </h1>
-            <img src="/flowers.png" alt="letter" className="w-20 h-18 ml-4 -rotate-10 object-cover hover:-rotate-20 transition-all duration-100"/>
+            <img src="/icons/flowers.png" alt="letter" className="w-20 h-18 ml-4 -rotate-10 object-cover hover:-rotate-20 transition-all duration-100"/>
           </div>
         </div>
 
