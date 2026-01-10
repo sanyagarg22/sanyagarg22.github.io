@@ -22,6 +22,9 @@ interface RibbonProps {
   onOutlineStyleChange: (style: OutlineStyle) => void;
   fillStyle: FillStyle;
   onFillStyleChange: (style: FillStyle) => void;
+  onCopy?: () => void;
+  onPaste?: () => void;
+  onCut?: () => void;
 }
 
 const PRESET_COLORS = [
@@ -49,6 +52,9 @@ export function Ribbon({
   onOutlineStyleChange,
   fillStyle,
   onFillStyleChange,
+  onCopy,
+  onPaste,
+  onCut,
 }: RibbonProps) {
   const [showSizeSlider, setShowSizeSlider] = useState(false);
   const [showOutlineMenu, setShowOutlineMenu] = useState(false);
@@ -231,12 +237,12 @@ export function Ribbon({
       title={label}
     >
       <span className={size === "large" ? "text-xl" : "text-sm"}>{icon}</span>
-      {size === "large" && <span className="text-[9px] mt-0.5">{label}</span>}
+      {size === "large" && <span className="text-[9px] text-gray-600 mt-0.5">{label}</span>}
     </button>
   );
 
   const GroupLabel = ({ children }: { children: React.ReactNode }) => (
-    <div className="text-[10px] text-gray-500 text-center mt-auto border-t border-[#e0e0e0] pt-0.5 w-full">
+    <div className="text-[10px] text-gray-600 text-center mt-auto border-t border-[#e0e0e0] pt-0.5 w-full">
       {children}
     </div>
   );
@@ -251,7 +257,7 @@ export function Ribbon({
         <div className="flex items-end gap-4">
           <button 
             onClick={() => onTabChange("Home")}
-            className="px-4 py-2 text-md font-semibold text-[#948ab8] rounded-t transition-colors flex items-center gap-2 mb-0"
+            className="px-4 py-2 text-md font-semibold text-gray-600 rounded-t transition-colors flex items-center gap-2 mb-0"
           >
             <img
               src="/icons/sg2.png"
@@ -265,8 +271,8 @@ export function Ribbon({
               onClick={() => onTabChange("Home")}
               className={`px-6 py-2.5 text-sm font-medium rounded-t-lg transition-all relative ${
                 activeTab === "Home"
-                  ? "bg-[#f5f6f7] text-[#2b579a] border-x border-t border-[#d0d0d0] -mb-px z-10 shadow-sm"
-                  : "text-gray-700 hover:bg-[#c4daf3] hover:text-[#2b579a] bg-[#dce8f5]"
+                  ? "bg-[#f5f6f7] text-gray-600 border-x border-t border-[#d0d0d0] -mb-px z-10 shadow-sm"
+                  : "text-gray-600 hover:bg-[#c4daf3] hover:text-gray-600 bg-[#dce8f5]"
               }`}
             >
               Home
@@ -275,8 +281,8 @@ export function Ribbon({
               onClick={() => onTabChange("About Me")}
               className={`px-6 py-2.5 text-sm font-medium rounded-t-lg transition-all relative ${
                 activeTab === "About Me"
-                  ? "bg-[#f5f6f7] text-[#2b579a] border-x border-t border-[#d0d0d0] -mb-px z-10 shadow-sm"
-                  : "text-gray-700 hover:bg-[#c4daf3] hover:text-[#2b579a] bg-[#dce8f5]"
+                  ? "bg-[#f5f6f7] text-gray-600 border-x border-t border-[#d0d0d0] -mb-px z-10 shadow-sm"
+                  : "text-gray-600 hover:bg-[#c4daf3] hover:text-gray-600 bg-[#dce8f5]"
               }`}
             >
               About
@@ -285,8 +291,8 @@ export function Ribbon({
               onClick={() => onTabChange("Projects")}
               className={`px-6 py-2.5 text-sm font-medium rounded-t-lg transition-all relative ${
                 activeTab === "Projects"
-                  ? "bg-[#f5f6f7] text-[#2b579a] border-x border-t border-[#d0d0d0] -mb-px z-10 shadow-sm"
-                  : "text-gray-700 hover:bg-[#c4daf3] hover:text-[#2b579a] bg-[#dce8f5]"
+                  ? "bg-[#f5f6f7] text-gray-600 border-x border-t border-[#d0d0d0] -mb-px z-10 shadow-sm"
+                  : "text-gray-600 hover:bg-[#c4daf3] hover:text-gray-600 bg-[#dce8f5]"
               }`}
             >
               Projects
@@ -295,8 +301,8 @@ export function Ribbon({
               onClick={() => onTabChange("Free Paint")}
               className={`px-6 py-2.5 text-sm font-medium rounded-t-lg transition-all relative ${
                 activeTab === "Free Paint"
-                  ? "bg-[#f5f6f7] text-[#2b579a] border-x border-t border-[#d0d0d0] -mb-px z-10 shadow-sm"
-                  : "text-gray-700 hover:bg-[#c4daf3] hover:text-[#2b579a] bg-[#dce8f5]"
+                  ? "bg-[#f5f6f7] text-gray-600 border-x border-t border-[#d0d0d0] -mb-px z-10 shadow-sm"
+                  : "text-gray-600 hover:bg-[#c4daf3] hover:text-gray-600 bg-[#dce8f5]"
               }`}
             >
               Canvas
@@ -310,20 +316,68 @@ export function Ribbon({
       {/* Canvas Controls */}
       {activeTab !== "Projects" && activeTab !== "About Me" && (
       <div className="flex items-stretch px-2 py-1 h-[90px]">
+
+      <div className="flex flex-col items-center h-full pl-4">
+          <div className="flex items-start gap-0.5 flex-1">
+            <button
+              onClick={onSave}
+              className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
+              title="Save (Ctrl+S)"
+            >
+              <span className="text-xl">💾</span>
+              <span className="text-[9px] text-gray-600">Save</span>
+            </button>
+            <button
+              onClick={onClearStart}
+              className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
+              title="Clear Canvas"
+            >
+              <span className="text-xl">🗑️</span>
+              <span className="text-[9px] text-gray-600">Clear</span>
+            </button>
+          </div>
+          <GroupLabel>Canvas</GroupLabel>
+        </div>
+
+        <GroupDivider />
+
+
         {/* Clipboard Group */}
         <div className="flex flex-col items-center h-full">
           <div className="flex items-start gap-0.5 flex-1">
-            <button className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent">
-              <span className="text-2xl">📋</span>
-              <span className="text-[9px]">Paste</span>
-              <span className="text-[8px]">▼</span>
+            <button
+              onClick={() => onToolChange("select")}
+              className={`flex flex-col items-center justify-center w-11 h-14 rounded-sm border
+                ${activeTool === "select"
+                  ? "bg-[#c4daf3] border-[#7eb4ea]"
+                  : "hover:bg-[#e5e5e5] border-transparent"
+                }`}
+              title="Select"
+            >
+              <span className="text-2xl">⬚</span>
+              <span className="text-[9px] text-gray-600">Select</span>
             </button>
-            <div className="flex flex-col gap-0.5">
-              <button className="flex items-center gap-1 px-1 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]">
-                ✂️ Cut
+            <div className="flex flex-col px-2 gap-0.5">
+              <button 
+                onClick={onCut}
+                className="flex items-center gap-1 px-1 h-[20px] hover:bg-[#e5e5e5] rounded-sm text-[10px]"
+                title="Cut"
+              >
+                ✂️
               </button>
-              <button className="flex items-center gap-1 px-1 h-5 hover:bg-[#e5e5e5] rounded-sm text-[10px]">
-                📄 Copy
+              <button 
+                onClick={onCopy}
+                className="flex items-center gap-1 px-1 h-[20px] hover:bg-[#e5e5e5] rounded-sm text-[10px]"
+                title="Copy"
+              >
+                📄
+              </button>
+              <button 
+                onClick={onPaste}
+                className="flex items-center gap-1 px-1 h-[20px] hover:bg-[#e5e5e5] rounded-sm text-[10px]"
+                title="Paste"
+              >
+                📋
               </button>
             </div>
           </div>
@@ -358,30 +412,6 @@ export function Ribbon({
 
         {/* Canvas Group */}
 
-        <div className="flex flex-col items-center h-full">
-          <div className="flex items-start gap-0.5 flex-1">
-            <button
-              onClick={onClearStart}
-              className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
-              title="Clear Canvas"
-            >
-              <span className="text-xl">🗑️</span>
-              <span className="text-[9px] text-gray-500">Clear</span>
-            </button>
-            <button
-              onClick={onSave}
-              className="flex flex-col items-center justify-center w-11 h-14 hover:bg-[#e5e5e5] rounded-sm border border-transparent"
-              title="Save (Ctrl+S)"
-            >
-              <span className="text-xl">💾</span>
-              <span className="text-[9px] text-gray-500">Save</span>
-            </button>
-          </div>
-          <GroupLabel>Canvas</GroupLabel>
-        </div>
-
-        <GroupDivider />
-
       
         {/* Tools Group */}
         <div className="flex flex-col items-center h-full">
@@ -408,14 +438,14 @@ export function Ribbon({
               <ToolButton tool="triangle" icon="△" label="Triangle" />
               {/* <ToolButton tool="arrow" icon="▷" label="Arrow" /> */}
               <ToolButton tool="diamond" icon="◇" label="Diamond" />
-              <ToolButton tool="circle" icon="○" label="Curcle" />
+              <ToolButton tool="circle" icon="⬭" label="Curcle" />
             </div>
             <div className="flex flex-col gap-0.5">
               {/* Outline Dropdown */}
               <div className="relative" ref={outlineButtonRef}>
                 <button 
                   onClick={() => setShowOutlineMenu(!showOutlineMenu)}
-                  className={`flex items-center justify-between px-2 h-6 w-20 rounded-sm text-[10px] border transition-colors font-medium whitespace-nowrap
+                  className={`flex items-center justify-between px-2 h-6 w-20 rounded-sm text-[10px] text-gray-600 border transition-colors font-medium whitespace-nowrap
                     ${showOutlineMenu 
                       ? "bg-[#c4daf3] border-[#7eb4ea]" 
                       : "hover:bg-[#e5e5e5] border-gray-300 bg-white"
@@ -432,50 +462,50 @@ export function Ribbon({
                     ref={outlineMenuRef}
                     className="absolute top-full left-0 mt-1 bg-white border-2 border-[#b8d0ec] rounded shadow-lg z-50 w-36"
                   >
-                    <button
-                      onClick={() => {
-                        onOutlineStyleChange("none");
-                        setShowOutlineMenu(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
-                        ${outlineStyle === "none" ? "bg-[#c4daf3]" : ""}`}
-                    >
-                      <div className="w-8 h-1"></div>
-                      <span className="font-medium">No outline</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        onOutlineStyleChange("solid");
-                        setShowOutlineMenu(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
-                        ${outlineStyle === "solid" ? "bg-[#c4daf3]" : ""}`}
-                    >
-                      <div className="w-8 h-0.5 bg-black"></div>
-                      <span className="font-medium">Solid</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        onOutlineStyleChange("dashed");
-                        setShowOutlineMenu(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
-                        ${outlineStyle === "dashed" ? "bg-[#c4daf3]" : ""}`}
-                    >
-                      <div className="w-8 h-0.5 border-t-2 border-dashed border-black"></div>
-                      <span className="font-medium">Dashed</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        onOutlineStyleChange("dotted");
-                        setShowOutlineMenu(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
-                        ${outlineStyle === "dotted" ? "bg-[#c4daf3]" : ""}`}
-                    >
-                      <div className="w-8 h-0.5 border-t-2 border-dotted border-black"></div>
-                      <span className="font-medium">Dotted</span>
-                    </button>
+                <button 
+                  onClick={() => {
+                    onOutlineStyleChange("none");
+                    setShowOutlineMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] text-gray-600 hover:bg-[#e5e5e5] transition-colors
+                    ${outlineStyle === "none" ? "bg-[#c4daf3]" : ""}`}
+                >
+                  <div className="w-8 h-1"></div>
+                  <span className="font-medium">No outline</span>
+                </button>
+                <button
+                  onClick={() => {
+                    onOutlineStyleChange("solid");
+                    setShowOutlineMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] text-gray-600 hover:bg-[#e5e5e5] transition-colors
+                    ${outlineStyle === "solid" ? "bg-[#c4daf3]" : ""}`}
+                >
+                  <div className="w-8 h-0.5 bg-black"></div>
+                  <span className="font-medium">Solid</span>
+                </button>
+                <button
+                  onClick={() => {
+                    onOutlineStyleChange("dashed");
+                    setShowOutlineMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] text-gray-600 hover:bg-[#e5e5e5] transition-colors
+                    ${outlineStyle === "dashed" ? "bg-[#c4daf3]" : ""}`}
+                >
+                  <div className="w-8 h-0.5 border-t-2 border-dashed border-black"></div>
+                  <span className="font-medium">Dashed</span>
+                </button>
+                <button
+                  onClick={() => {
+                    onOutlineStyleChange("dotted");
+                    setShowOutlineMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] text-gray-600 hover:bg-[#e5e5e5] transition-colors
+                    ${outlineStyle === "dotted" ? "bg-[#c4daf3]" : ""}`}
+                >
+                  <div className="w-8 h-0.5 border-t-2 border-dotted border-black"></div>
+                  <span className="font-medium">Dotted</span>
+                </button>
                   </div>
                 )}
               </div>
@@ -484,7 +514,7 @@ export function Ribbon({
               <div className="relative" ref={fillButtonRef}>
                 <button 
                   onClick={() => setShowFillMenu(!showFillMenu)}
-                  className={`flex items-center justify-between px-2 h-6 w-20 rounded-sm text-[10px] border transition-colors font-medium whitespace-nowrap
+                  className={`flex items-center justify-between px-2 h-6 w-20 rounded-sm text-[10px] text-gray-600 border transition-colors font-medium whitespace-nowrap
                     ${showFillMenu 
                       ? "bg-[#c4daf3] border-[#7eb4ea]" 
                       : "hover:bg-[#e5e5e5] border-gray-300 bg-white"
@@ -501,28 +531,28 @@ export function Ribbon({
                     ref={fillMenuRef}
                     className="absolute top-full left-0 mt-1 bg-white border-2 border-[#b8d0ec] rounded shadow-lg z-50 w-36"
                   >
-                    <button
-                      onClick={() => {
-                        onFillStyleChange("none");
-                        setShowFillMenu(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
-                        ${fillStyle === "none" ? "bg-[#c4daf3]" : ""}`}
-                    >
-                      <div className="w-4 h-4 border border-black"></div>
-                      <span className="font-medium">No fill</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        onFillStyleChange("solid");
-                        setShowFillMenu(false);
-                      }}
-                      className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] hover:bg-[#e5e5e5] transition-colors
-                        ${fillStyle === "solid" ? "bg-[#c4daf3]" : ""}`}
-                    >
-                      <div className="w-4 h-4 bg-black border border-black"></div>
-                      <span className="font-medium">Solid fill</span>
-                    </button>
+                <button
+                  onClick={() => {
+                    onFillStyleChange("none");
+                    setShowFillMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] text-gray-600 hover:bg-[#e5e5e5] transition-colors
+                    ${fillStyle === "none" ? "bg-[#c4daf3]" : ""}`}
+                >
+                  <div className="w-4 h-4 border border-black"></div>
+                  <span className="font-medium">No fill</span>
+                </button>
+                <button
+                  onClick={() => {
+                    onFillStyleChange("solid");
+                    setShowFillMenu(false);
+                  }}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-[10px] text-gray-600 hover:bg-[#e5e5e5] transition-colors
+                    ${fillStyle === "solid" ? "bg-[#c4daf3]" : ""}`}
+                >
+                  <div className="w-4 h-4 bg-black border border-black"></div>
+                  <span className="font-medium">Solid fill</span>
+                </button>
                   </div>
                 )}
               </div>
@@ -560,10 +590,10 @@ export function Ribbon({
                 className="absolute top-full left-1/2 -translate-x-1/2 mt-1 bg-white border-2 border-[#b8d0ec] rounded shadow-lg p-3 z-50 w-48"
               >
                 <div className="flex flex-col gap-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-gray-700">Brush Size</span>
-                    <span className="text-xs font-bold text-[#2b579a]">{brushSize}px</span>
-                  </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-600">Brush Size</span>
+                  <span className="text-xs font-bold text-gray-600">{brushSize}px</span>
+                </div>
                   <input
                     type="range"
                     min="1"
@@ -575,10 +605,10 @@ export function Ribbon({
                       background: `linear-gradient(to right, #2b579a 0%, #2b579a ${(brushSize / 50) * 100}%, #e5e5e5 ${(brushSize / 50) * 100}%, #e5e5e5 100%)`
                     }}
                   />
-                  <div className="flex justify-between text-[10px] text-gray-500">
-                    <span>1px</span>
-                    <span>50px</span>
-                  </div>
+                <div className="flex justify-between text-[10px] text-gray-600">
+                  <span>1px</span>
+                  <span>50px</span>
+                </div>
                   {/* Quick size presets */}
                   <div className="flex gap-1 justify-center pt-1 border-t border-[#d0d0d0]">
                     {[1, 3, 5, 8, 12, 16].map((size) => (
@@ -684,7 +714,7 @@ export function Ribbon({
           >
             {/* Title bar */}
             <div className="bg-[#dce8f5] border-b-2 border-[#b8d0ec] px-3 py-2.5 flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-500">Edit Colors</span>
+              <span className="text-sm font-semibold text-gray-600">Edit Colors</span>
               <button 
                 onClick={() => setShowColorEditor(false)}
                 className="hover:bg-[#c4daf3] w-6 h-6 flex items-center justify-center rounded text-lg text-gray-600 transition-colors"
@@ -718,8 +748,8 @@ export function Ribbon({
                 {/* Hue */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-gray-700">Hue</label>
-                    <span className="text-xs font-bold text-[#2b579a]">{hue}°</span>
+                    <label className="text-xs font-semibold text-gray-600">Hue</label>
+                    <span className="text-xs font-bold text-gray-600">{hue}°</span>
                   </div>
                   <input
                     type="range"
@@ -737,8 +767,8 @@ export function Ribbon({
                 {/* Saturation */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-gray-700">Saturation</label>
-                    <span className="text-xs font-bold text-[#2b579a]">{saturation}%</span>
+                    <label className="text-xs font-semibold text-gray-600">Saturation</label>
+                    <span className="text-xs font-bold text-gray-600">{saturation}%</span>
                   </div>
                   <input
                     type="range"
@@ -756,8 +786,8 @@ export function Ribbon({
                 {/* Lightness */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-gray-700">Lightness</label>
-                    <span className="text-xs font-bold text-[#2b579a]">{lightness}%</span>
+                    <label className="text-xs font-semibold text-gray-600">Lightness</label>
+                    <span className="text-xs font-bold text-gray-600">{lightness}%</span>
                   </div>
                   <input
                     type="range"
@@ -775,7 +805,7 @@ export function Ribbon({
 
               {/* Hex input */}
               <div>
-                <label className="text-xs font-semibold text-gray-700 block mb-1">Hex Color</label>
+                <label className="text-xs font-semibold text-gray-600 block mb-1">Hex Color</label>
                 <input
                   type="text"
                   value={tempColor}
@@ -799,7 +829,7 @@ export function Ribbon({
 
               {/* Preset colors */}
               <div>
-                <div className="text-xs font-semibold text-gray-700 mb-2">Basic Colors</div>
+                <div className="text-xs font-semibold text-gray-600 mb-2">Basic Colors</div>
                 <div className="grid grid-cols-10 gap-1">
                   {PRESET_COLORS.map((color, index) => (
                     <button
@@ -823,13 +853,13 @@ export function Ribbon({
               <div className="flex gap-2 justify-end pt-2 border-t border-[#d0d0d0]">
                 <button
                   onClick={applyColor}
-                  className="px-6 py-2 bg-[#7eb4ea] hover:bg-[#6ba3d9] text-white text-sm font-semibold rounded border border-[#6ba3d9] shadow-sm transition-colors"
+                  className="px-6 py-2 bg-[#7eb4ea] hover:bg-[#6ba3d9] text-gray-600 text-sm font-semibold rounded border border-[#6ba3d9] shadow-sm transition-colors"
                 >
                   Save
                 </button>
                 <button
                   onClick={() => setShowColorEditor(false)}
-                  className="px-6 py-2 bg-white hover:bg-[#e5e5e5] text-gray-700 text-sm font-semibold rounded border-2 border-[#d0d0d0] transition-colors"
+                  className="px-6 py-2 bg-white hover:bg-[#e5e5e5] text-gray-600 text-sm font-semibold rounded border-2 border-[#d0d0d0] transition-colors"
                 >
                   Cancel
                 </button>

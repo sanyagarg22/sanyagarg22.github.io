@@ -20,6 +20,10 @@ interface CanvasProps {
   onCursorMove?: (x: number, y: number) => void;
   onClearEnd?: () => void;
   onZoomChange?: (zoom: number) => void;
+  onCopyReady?: (copyFn: () => void) => void;
+  onPasteReady?: (pasteFn: () => void) => void;
+  onCutReady?: (cutFn: () => void) => void;
+  onClearSelectionRectReady?: (clearSelectionRectFn: () => void) => void;
 }
 
 export function Canvas({ 
@@ -37,6 +41,10 @@ export function Canvas({
   activeTab,
   onClearEnd,
   onZoomChange,
+  onCopyReady,
+  onPasteReady,
+  onCutReady,
+  onClearSelectionRectReady,
 }: CanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -52,6 +60,12 @@ export function Canvas({
   const [savedImageData, setSavedImageData] = useState<ImageData | null>(null);
   const textInputRef = useRef<HTMLInputElement>(null);
   const padding = 32;
+  
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [selectionStart, setSelectionStart] = useState<{ x: number; y: number } | null>(null);
+  const [selectionEnd, setSelectionEnd] = useState<{ x: number; y: number } | null>(null);
+  const [copiedImageData, setCopiedImageData] = useState<ImageData | null>(null);
+  const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
   
   const zoomLevel = zoom / 100;
 
@@ -110,6 +124,7 @@ export function Canvas({
   // Initialize canvas with white background and handle resizing
   useEffect(() => {
     const canvas = canvasRef.current;
+    const overlayCanvas = overlayCanvasRef.current;
     if (!canvas) return;
     
     const ctx = canvas.getContext("2d");
@@ -121,6 +136,11 @@ export function Canvas({
 
     canvas.width = canvasSize.width;
     canvas.height = canvasSize.height;
+    
+    if (overlayCanvas) {
+      overlayCanvas.width = canvasSize.width;
+      overlayCanvas.height = canvasSize.height;
+    }
     
     if ((!isInitialized && canvasSize.width > 0 && canvasSize.height > 0) || toClear) {
       ctx.fillStyle = "#ffffff";
@@ -343,6 +363,159 @@ export function Canvas({
     ctx.fillText(text, x, y+6);
   }, [fontSize]);
 
+  const drawSelectionRect = useCallback(() => {
+    const overlayCanvas = overlayCanvasRef.current;
+    if (!overlayCanvas || !selectionStart || !selectionEnd) return;
+    
+    const ctx = overlayCanvas.getContext("2d");
+    if (!ctx) return;
+    
+    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+    
+    const x = Math.min(selectionStart.x, selectionEnd.x);
+    const y = Math.min(selectionStart.y, selectionEnd.y);
+    const width = Math.abs(selectionEnd.x - selectionStart.x);
+    const height = Math.abs(selectionEnd.y - selectionStart.y);
+    
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeRect(x, y, width, height);
+    ctx.setLineDash([]);
+  }, [selectionStart, selectionEnd]);
+
+  useEffect(() => {
+    if (selectionStart && selectionEnd) {
+      drawSelectionRect();
+    }
+  }, [selectionStart, selectionEnd, drawSelectionRect]);
+
+  const clearOverlayCanvas = useCallback(() => {
+    const overlayCanvas = overlayCanvasRef.current;
+    if (!overlayCanvas) return;
+    const ctx = overlayCanvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+  }, []);
+
+  const copySelection = useCallback(() => {
+    if (!selectionStart || !selectionEnd) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    const x = Math.min(selectionStart.x, selectionEnd.x);
+    const y = Math.min(selectionStart.y, selectionEnd.y);
+    const width = Math.abs(selectionEnd.x - selectionStart.x);
+    const height = Math.abs(selectionEnd.y - selectionStart.y);
+    
+    if (width > 0 && height > 0) {
+      const imageData = ctx.getImageData(x, y, width, height);
+      setCopiedImageData(imageData);
+    }
+
+   clearOverlayCanvas();
+  }, [selectionStart, selectionEnd]);
+
+  const cutSelection = useCallback(() => {
+    if (!selectionStart || !selectionEnd) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    const x = Math.min(selectionStart.x, selectionEnd.x);
+    const y = Math.min(selectionStart.y, selectionEnd.y);
+    const width = Math.abs(selectionEnd.x - selectionStart.x);
+    const height = Math.abs(selectionEnd.y - selectionStart.y);
+    
+    if (width > 0 && height > 0) {
+      const imageData = ctx.getImageData(x, y, width, height);
+      setCopiedImageData(imageData);
+      ctx.clearRect(x, y, width, height);
+    }
+    clearOverlayCanvas();
+  }, [selectionStart, selectionEnd]);
+
+  const pasteSelection = useCallback(() => {
+    if (!copiedImageData) return;
+    
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
+    const pasteX = selectionStart?.x || 10;
+    const pasteY = selectionStart?.y || 10;
+    
+    ctx.putImageData(copiedImageData, pasteX, pasteY);
+    
+    setSelectionStart({ x: pasteX, y: pasteY });
+    setSelectionEnd({ 
+      x: pasteX + copiedImageData.width, 
+      y: pasteY + copiedImageData.height 
+    });
+  }, [copiedImageData, selectionStart]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'c' && activeTool === "select") {
+        e.preventDefault();
+        copySelection();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'v' && activeTool === "select") {
+        e.preventDefault();
+        pasteSelection();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'x' && activeTool === "select") {
+        e.preventDefault();
+        cutSelection();
+      }
+      if (e.key === 'Escape' && activeTool === "select") {
+        setSelectionStart(null);
+        setSelectionEnd(null);
+        const overlayCanvas = overlayCanvasRef.current;
+        if (overlayCanvas) {
+          const ctx = overlayCanvas.getContext("2d");
+          ctx?.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+        }
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTool, copySelection, pasteSelection]);
+
+  useEffect(() => {
+    if (onCopyReady) {
+      onCopyReady(copySelection);
+    }
+  }, [copySelection, onCopyReady]);
+
+  useEffect(() => {
+    if (onPasteReady) {
+      onPasteReady(pasteSelection);
+    }
+  }, [pasteSelection, onPasteReady]);
+
+  useEffect(() => {
+    if (onCutReady) {
+      onCutReady(cutSelection);
+    }
+  }, [cutSelection, onCutReady]);
+
+  useEffect(() => {
+    if (onClearSelectionRectReady) {
+      onClearSelectionRectReady(clearOverlayCanvas);
+    }
+  }, [clearOverlayCanvas, onClearSelectionRectReady]);
+
   const handleTextComplete = useCallback(() => {
     if (textInput && textInput.text.trim()) {
       renderText(textInput.x, textInput.y, textInput.text, currentColor);
@@ -406,6 +579,13 @@ export function Canvas({
       return;
     }
 
+    if (activeTool === "select") {
+      setIsSelecting(true);
+      setSelectionStart({ x, y });
+      setSelectionEnd({ x, y });
+      return;
+    }
+
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -418,6 +598,9 @@ export function Canvas({
     else if (isDrawing) {
       draw(x, y, currentColor);
       setLastPos({ x, y });
+    }
+    else if (isSelecting && selectionStart) {
+      setSelectionEnd({ x, y });
     }
   };
 
@@ -436,8 +619,12 @@ export function Canvas({
       setSavedImageData(null);
       setShapeStart(null);
     }
+    if (isSelecting && selectionStart) {
+      setSelectionEnd({ x, y });
+    }
     setIsDrawingShape(false);
     setIsDrawing(false);
+    setIsSelecting(false);
     setLastPos(null);
   };
 
@@ -454,6 +641,7 @@ export function Canvas({
   const getCursorStyle = () => {
     if (activeTool === "magnifier") return "zoom-in";
     if (activeTool === "picker") return "crosshair";
+    if (activeTool === "select") return "crosshair";
     return "crosshair";
   };
 
@@ -473,42 +661,51 @@ export function Canvas({
             transformOrigin: 'top left',
           }}
         >
-          <canvas
-            ref={canvasRef}
-            className="bg-white shadow-md block"
-            style={{
-              cursor: getCursorStyle(),
-            }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-            onContextMenu={handleContextMenu}
-          />
-          {textInput && (
-            <input
-              ref={textInputRef}
-              type="text"
-              value={textInput.text}
-              onChange={(e) => setTextInput({ ...textInput, text: e.target.value })}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleTextComplete();
-                } else if (e.key === "Escape") {
-                  setTextInput(null);
-                }
-              }}
-              className="absolute border-none outline-none bg-transparent"
+          <div className="relative inline-block">
+            <canvas
+              ref={canvasRef}
+              className="bg-white shadow-md block"
               style={{
-                left: `${textInput.x}px`,
-                top: `${textInput.y}px`,
-                fontSize: `${fontSize}px`,
-                fontFamily: "Arial",
-                color: currentColor,
-                width: `${Math.max(2, textInput.text.length * (fontSize * 0.6) + 4)}px`,
+                cursor: getCursorStyle(),
+              }}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseUp}
+              onContextMenu={handleContextMenu}
+            />
+            <canvas
+              ref={overlayCanvasRef}
+              className="absolute top-0 left-0 pointer-events-none"
+              style={{
+                cursor: getCursorStyle(),
               }}
             />
-          )}
+            {textInput && (
+              <input
+                ref={textInputRef}
+                type="text"
+                value={textInput.text}
+                onChange={(e) => setTextInput({ ...textInput, text: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleTextComplete();
+                  } else if (e.key === "Escape") {
+                    setTextInput(null);
+                  }
+                }}
+                className="absolute border-none outline-none bg-transparent"
+                style={{
+                  left: `${textInput.x}px`,
+                  top: `${textInput.y}px`,
+                  fontSize: `${fontSize}px`,
+                  fontFamily: "Arial",
+                  color: currentColor,
+                  width: `${Math.max(2, textInput.text.length * (fontSize * 0.6) + 4)}px`,
+                }}
+              />
+            )}
+          </div>
           {activeTab === "Home" && <Home />}
           {activeTab === "Free Paint" && <FreePaint />}
         </div>

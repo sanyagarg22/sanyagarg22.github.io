@@ -27,6 +27,12 @@ export function PaintApp() {
 
   const [toClear, setToClear] = useState(false);
 
+  // Copy/Paste functions
+  const [copyFn, setCopyFn] = useState<(() => void) | null>(null);
+  const [pasteFn, setPasteFn] = useState<(() => void) | null>(null);
+  const [cutFn, setCutFn] = useState<(() => void) | null>(null);
+  const [clearSelectionRectFn, setClearSelectionRectFn] = useState<(() => void) | null>(null);
+
   const handleCanvasSizeChange = useCallback((width: number, height: number) => {
     setCanvasSize({ width, height });
   }, []);
@@ -83,6 +89,48 @@ export function PaintApp() {
     setToClear(false);
   };
 
+  const handleCopy = () => {
+    if (copyFn) {
+      copyFn();
+    }
+  };
+
+  const handlePaste = () => {
+    if (pasteFn) {
+      pasteFn();
+    }
+  };
+
+  const handleCut = () => {
+    if (cutFn) {
+      cutFn();
+    }
+  }
+
+
+  const handleCopyReady = useCallback((fn: () => void) => {
+    setCopyFn(() => fn);
+  }, []);
+
+  const handlePasteReady = useCallback((fn: () => void) => {
+    setPasteFn(() => fn);
+  }, []);
+
+  const handleCutReady = useCallback((fn: () => void) => {
+    setCutFn(() => fn);
+  }, []);
+
+  const handleClearSelectionRectReady = useCallback((fn: () => void) => {
+    setClearSelectionRectFn(() => fn);
+  }, []);
+
+
+  const handleToolChange = (tool: Tool) => {
+    setActiveTool(tool);
+    if (clearSelectionRectFn) {
+      clearSelectionRectFn();
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen bg-[#f0f0f0]" style={{ fontFamily: '"Open Sans", "Noto Color Emoji", sans-serif' }}>
@@ -108,7 +156,7 @@ export function PaintApp() {
       {/* Ribbon (includes title bar) */}
       <Ribbon
         activeTool={activeTool}
-        onToolChange={setActiveTool}
+        onToolChange={handleToolChange}
         brushSize={brushSize}
         onBrushSizeChange={setBrushSize}
         primaryColor={primaryColor}
@@ -125,6 +173,9 @@ export function PaintApp() {
         onOutlineStyleChange={setOutlineStyle}
         fillStyle={fillStyle}
         onFillStyleChange={setFillStyle}
+        onCopy={handleCopy}
+        onPaste={handlePaste}
+        onCut={handleCut}
       />
       
       {/* Canvas Area */}
@@ -143,6 +194,10 @@ export function PaintApp() {
         onCursorMove={handleCursorPositionChange}
         onClearEnd={endClear}
         onZoomChange={setZoom}
+        onCopyReady={handleCopyReady}
+        onPasteReady={handlePasteReady}
+        onCutReady={handleCutReady}
+        onClearSelectionRectReady={handleClearSelectionRectReady}
       />
       
       {/* Status Bar */}
