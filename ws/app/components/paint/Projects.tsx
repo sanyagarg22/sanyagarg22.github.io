@@ -113,19 +113,19 @@ const projectsData: ProjectProps[] = [
     year: "2026",
   },
   {
+    title: "Zero-Shot Image Classification with BLISS",
+    description: "Built a zero-shot image classification system using ResNet feature extraction and BLISS clustering to organize images into balanced semantic groups and associate unseen classes with labels.",
+    tags: ["Python", "Pytorch"],
+    liveUrl: "/files/COMP_480_Project.pdf",
+    year: "2023-2025",
+  },
+  {
     title: "Personal Website",
     description: "This personal website inspired by Microsoft Paint! Features an interactive drawing canvas, multiple themed pages, and a responsive design.",
     tags: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
     githubUrl: "https://github.com/sanyagarg22/personal-ws",
     liveUrl: "#",
     year: "2026",
-  },
-  {
-    title: "Zero-Shot Image Classification with BLISS",
-    description: "Built a zero-shot image classification system using ResNet feature extraction and BLISS clustering to organize images into balanced semantic groups and associate unseen classes with labels.",
-    tags: ["Python", "Pytorch"],
-    liveUrl: "/files/COMP_480_Project.pdf",
-    year: "2023-2025",
   },
 ];
 
