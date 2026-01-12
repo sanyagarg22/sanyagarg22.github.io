@@ -105,6 +105,14 @@ const projectsData: ProjectProps[] = [
     year: "2024-2025",
   },
   {
+    title: "Custom Item Ranker",
+    description: "A custom ranker allows you to upload a list of items and compare each item to others one by one. It then generates a final ranking based on your choices!",
+    tags: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
+    githubUrl: "https://github.com/sanyagarg22/ranker",
+    liveUrl: "https://custom-ranker.vercel.app",
+    year: "2026",
+  },
+  {
     title: "Personal Website",
     description: "This personal website inspired by Microsoft Paint! Features an interactive drawing canvas, multiple themed pages, and a responsive design.",
     tags: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
